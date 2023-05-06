@@ -3,6 +3,10 @@
 
 # virtualenv
 .venv
+venv/
 
 # auth
 api.key
+
+# Python
+__pycache__/
