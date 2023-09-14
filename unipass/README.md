@@ -21,5 +21,6 @@ vins: list[str] = [
 ```
 
 ```shell
+# UNIPASS_API_036_KEY=<api_036_key> UNIPASS_API_002_KEY=<api_002_key> python3 main.py
 python3 main.py
 ```
