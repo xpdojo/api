@@ -1,0 +1,5 @@
+channel:
+  test: "CHANNEL_ID"
+  prod: "CHANNEL_ID"
+app:
+  token: "xoxb-xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxx"
