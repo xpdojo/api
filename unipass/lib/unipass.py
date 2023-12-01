@@ -1,6 +1,6 @@
+import datetime
 import json
 import os
-import datetime
 from enum import Enum
 
 UNIPASS_HOST = "https://unipass.customs.go.kr:38010/ext/rest"
@@ -20,88 +20,6 @@ start_date = before_one_year.strftime("%Y%m%d")
 """조회기간 시작일자"""
 end_date = today.strftime("%Y%m%d")
 """조회기간 종료일자"""
-
-
-class UnipassApi002:
-    def __init__(self, number):
-        self.number = number
-        """수출신고번호"""
-        self.path: str = f"{UNIPASS_HOST}/expDclrNoPrExpFfmnBrkdQry/retrieveExpDclrNoPrExpFfmnBrkd"
-        """API002 경로"""
-
-    @property
-    def params(self):
-        return UnipassApi002Params(self.number)
-
-
-class UnipassApi002Params:
-    def __init__(self, number):
-        self.crkyCn: str = os.getenv('UNIPASS_API_002_KEY')
-        """인증키"""
-        self.expDclrNo: str = number
-        """수출신고번호"""
-        self.blNo: str = ''
-        """B/L 번호"""
-
-    def to_dict(self):
-        return json.loads(json.dumps(self, default=lambda o: o.__dict__))
-
-
-class UnipassApiResponse002:
-    def __init__(self, json_dict: dict):
-        API_002_RESPONSE = 'expDclrNoPrExpFfmnBrkdQryRtnVo'
-        """API002 응답 객체의 최상위 노드 (XML)"""
-        API_002_RECORD = 'expDclrNoPrExpFfmnBrkdQryRsltVo'
-        """API036 수출 이행 내역"""
-        API_002_RECORD_DETAIL = 'expDclrNoPrExpFfmnBrkdDtlQryRsltVo'
-        """API036 수출 이행 내역 상세"""
-
-        self.record_count = json_dict[API_002_RESPONSE]['tCnt']
-        """응답 레코드 수: -1이면 오류 코드."""
-        self.notice_info = json_dict[API_002_RESPONSE]['ntceInfo']
-        """오류 메시지"""
-
-        # 수출 이행 내역이 여러개인 경우 list 중 첫번째 레코드를 사용한다.
-        record = json_dict[API_002_RESPONSE][API_002_RECORD]
-        record_detail = json_dict[API_002_RESPONSE][API_002_RECORD_DETAIL]
-
-        self.departure_date = record_detail['tkofDt']
-        """출항일자"""
-        self.bill_of_landing_number = record_detail['blNo']
-        """B/L 번호"""
-        self.manufacturer_company_name = record['mnurConm']
-        """제조자 상호"""
-        self.exporter_company_name = record['exppnConm']
-        """수출자 상호"""
-        self.vessel_name = record['sanm']
-        """선박/편명"""
-        self.accept_date = record['acptDt']
-        """수리일자"""
-        self.accept_date_time = record['acptDttm']
-        """수리일시"""
-        self.shipment_completed_yn = record['shpmCmplYn']
-        """선적 완료 여부"""
-        self.shipment_weight = record['shpmWght']
-        """선적 중량"""
-        self.export_declaration_number = record['expDclrNo']
-        """수출 신고 번호"""
-        self.loading_deadline = record['loadDtyTmlm']
-        """적재 의무 기한"""
-        self.loading_area_inspection_yn = record['ldpInscTrgtYn']
-        """적재지 검사 대상 여부"""
-        self.customs_clearance_weight = record['csclWght']
-        """통관 중량"""
-        self.customs_clearance_package_unit = record['csclPckUt']
-        """통관 포장 단위"""
-        self.customs_clearance_package_count = record['csclPckGcnt']
-        """통관 포장 개수"""
-        self.shipment_package_unit = record['shpmPckUt']
-        """선(기)적 포장 단위"""
-        self.shipment_package_count = record['shpmPckGcnt']
-        """선(기)적 포장 개수"""
-
-    def __str__(self):
-        return str(self.__dict__)
 
 
 class UnipassApi036:
@@ -142,33 +60,200 @@ class _DeprecatedUnipassResponse036:
         return str(self.__dict__)
 
 
-class UnipassApiResponse036:
-    def __init__(self, json_dict: dict):
-        API_036_RESPONSE = 'expFfmnBrkdCbnoQryRtnVo'
-        """API036 응답 객체의 최상위 노드 (XML)"""
-        API_036_RECORD = 'expFfmnBrkdCbnoQryRsltVo'
-        """API036 수출 이행 내역"""
+class UnipassApi036Response:
+    def __init__(
+            self,
+            expFfmnBrkdCbnoQryRtnVo: dict,
+    ):
+        self.record = Api036ExportQueryResponse(**expFfmnBrkdCbnoQryRtnVo)
+        print(self.record.count)
 
-        self.record_count = json_dict[API_036_RESPONSE]['tCnt']
+    def __str__(self):
+        return str(self.__dict__)
+
+
+class Api036ExportQueryResponse:
+    """API036 응답 객체의 최상위 노드 (XML)"""
+
+    def __init__(
+            self,
+            tCnt,
+            ntceInfo,
+            expFfmnBrkdCbnoQryRsltVo: dict,
+    ):
+        self.count = tCnt
         """응답 레코드 수: -1이면 오류 코드."""
-        self.notice_info = json_dict[API_036_RESPONSE]['ntceInfo']
+        self.notice_info = ntceInfo
         """오류 메시지"""
 
         # 수출 이행 내역이 여러개인 경우 list 중 첫번째 레코드를 사용한다.
-        _result = json_dict[API_036_RESPONSE][API_036_RECORD]
-        if int(self.record_count) > 1:
+        _result = expFfmnBrkdCbnoQryRsltVo
+        if int(self.count) > 1:
             result = _result[0]
         else:
             result = _result
 
-        self.export_declaration_date = result['dclrDttm']
+        self.result = Api036ExportQueryResult(**result)
+
+    def __str__(self):
+        return str(self.__dict__)
+
+
+class Api036ExportQueryResult:
+    """API036 수출 이행 내역"""
+
+    def __init__(
+            self,
+            dclrDttm,
+            cbno,
+            vhclPrgsStts,
+            expDclrNo,
+    ):
+        self.export_declaration_date = dclrDttm
         """수출 신고 일자"""
-        self.vin = result['cbno']
+        self.vin = cbno
         """차대번호"""
-        self.progress_status = result['vhclPrgsStts']
+        self.progress_status = vhclPrgsStts
         """차량 진행 상태"""
-        self.export_declaration_number = result['expDclrNo']
+        self.export_declaration_number = expDclrNo
         """수출 신고 번호"""
+
+    def __str__(self):
+        return str(self.__dict__)
+
+
+class UnipassApi002:
+    def __init__(self, number):
+        self.number = number
+        """수출신고번호"""
+        self.path: str = f"{UNIPASS_HOST}/expDclrNoPrExpFfmnBrkdQry/retrieveExpDclrNoPrExpFfmnBrkd"
+        """API002 경로"""
+
+    @property
+    def params(self):
+        return UnipassApi002Params(self.number)
+
+
+class UnipassApi002Params:
+    def __init__(self, number):
+        self.crkyCn: str = os.getenv('UNIPASS_API_002_KEY')
+        """인증키"""
+        self.expDclrNo: str = number
+        """수출신고번호"""
+        self.blNo: str = ''
+        """B/L 번호"""
+
+    def to_dict(self):
+        return json.loads(json.dumps(self, default=lambda o: o.__dict__))
+
+
+class UnipassApi002Response:
+    def __init__(
+            self,
+            expDclrNoPrExpFfmnBrkdQryRtnVo: dict
+    ):
+        """
+        수출 이행 내역 export_shipment_record
+        """
+        self.record = Api002ExportQueryResponse(**expDclrNoPrExpFfmnBrkdQryRtnVo)
+        print(self.record.count)
+
+    def __str__(self):
+        return str(self.__dict__)
+
+
+class Api002ExportQueryResponse:
+    """API002 응답 객체의 최상위 노드 (XML)"""
+
+    def __init__(
+            self,
+            tCnt,
+            ntceInfo,
+            expDclrNoPrExpFfmnBrkdQryRsltVo: dict,
+            expDclrNoPrExpFfmnBrkdDtlQryRsltVo: dict,
+    ):
+        self.count = tCnt
+        """응답 레코드 수: -1이면 오류 코드."""
+        self.notice_info = ntceInfo
+        """오류 메시지"""
+        self.result = Api002ExportQueryResult(**expDclrNoPrExpFfmnBrkdQryRsltVo)
+        """수출 이행 내역"""
+        self.result_detail = Api002ExportQueryResultDetail(**expDclrNoPrExpFfmnBrkdDtlQryRsltVo)
+        """수출 이행 내역 상세"""
+
+    def __str__(self):
+        return str(self.__dict__)
+
+
+class Api002ExportQueryResult:
+    """API002 수출 이행 내역"""
+
+    def __init__(self,
+                 mnurConm,
+                 exppnConm,
+                 sanm,
+                 acptDt,
+                 acptDttm,
+                 shpmCmplYn,
+                 shpmWght,
+                 expDclrNo,
+                 loadDtyTmlm,
+                 ldpInscTrgtYn,
+                 csclWght,
+                 csclPckUt,
+                 csclPckGcnt,
+                 shpmPckUt,
+                 shpmPckGcnt,
+                 ):
+        self.manufacturer_company_name = mnurConm
+        """제조자 상호"""
+        self.exporter_company_name = exppnConm
+        """수출자 상호"""
+        self.vessel_name = sanm
+        """선박/편명"""
+        self.accept_date = acptDt
+        """수리일자"""
+        self.accept_date_time = acptDttm
+        """수리일시"""
+        self.shipment_completed_yn = shpmCmplYn
+        """선적 완료 여부"""
+        self.shipment_weight = shpmWght
+        """선적 중량"""
+        self.export_declaration_number = expDclrNo
+        """수출 신고 번호"""
+        self.loading_deadline = loadDtyTmlm
+        """적재 의무 기한"""
+        self.loading_area_inspection_yn = ldpInscTrgtYn
+        """적재지 검사 대상 여부"""
+        self.customs_clearance_weight = csclWght
+        """통관 중량"""
+        self.customs_clearance_package_unit = csclPckUt
+        """통관 포장 단위"""
+        self.customs_clearance_package_count = csclPckGcnt
+        """통관 포장 개수"""
+        self.shipment_package_unit = shpmPckUt
+        """선(기)적 포장 단위"""
+        self.shipment_package_count = shpmPckGcnt
+        """선(기)적 포장 개수"""
+
+    def __str__(self):
+        return str(self.__dict__)
+
+
+class Api002ExportQueryResultDetail:
+    """API002 수출 이행 내역 상세"""
+
+    def __init__(self,
+                 blNo,
+                 shpmPckGcnt,
+                 shpmPckUt,
+                 shpmWght,
+                 tkofDt,
+                 ):
+        self.departure_date = tkofDt
+        """출항일자"""
+        self.bill_of_landing_number = blNo
+        """B/L 번호"""
 
     def __str__(self):
         return str(self.__dict__)

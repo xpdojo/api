@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 
-def convert_to_json(json_data: Any):
+def convert_to_json(json_data: Any) -> dict:
     """
     JSON 데이터를 출력한다.
     """
@@ -14,5 +14,4 @@ def convert_to_json(json_data: Any):
     # single quote는 JSON 형식이 아님
     # json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
     double_quote_records = str_records.replace("\'", "\"")
-    json_object = json.loads(double_quote_records)
-    return json_object
+    return json.loads(double_quote_records)

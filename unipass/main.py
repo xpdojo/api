@@ -17,14 +17,14 @@ import lib.json_util as json_util
 from lib.unipass import (
     UnipassApi036,
     UnipassApi036Params,
-    UnipassApiResponse036,
+    UnipassApi036Response,
     UnipassApi002,
     UnipassApi002Params,
-    UnipassApiResponse002,
+    UnipassApi002Response,
 )
 
 vins: list[str] = [
-    "KMHNN81XP2U067325",
+    "HERE",
 ]
 """차대번호 목록"""
 
@@ -52,8 +52,8 @@ async def get_export_declaration_numbers():
                 response_json = xmltodict.parse(xml_text)
                 json_dict: dict = json_util.convert_to_json(response_json)
                 pprint(json_dict)
-                api_036_response: UnipassApiResponse036 = UnipassApiResponse036(json_dict)
-                _cnt = int(api_036_response.record_count)
+                api_036_response: UnipassApi036Response = UnipassApi036Response(**json_dict)
+                _cnt = int(api_036_response.record.count)
                 if _cnt <= 0:
                     cprint.error(
                         f"{_params.dclrStrDttm} ~ {_params.dclrEndDttm} 기간 동안 차대번호(VIN) '{vin}'인 차량의 수출 신고된 건은 없습니다.")
@@ -62,7 +62,7 @@ async def get_export_declaration_numbers():
                 cprint.error(f"API036 response record count: {_cnt}")
 
                 # cprint.debug(result[API_036_RECORD_STATUS])
-                export_declaration_numbers.append(api_036_response.export_declaration_number)
+                export_declaration_numbers.append(api_036_response.record.result.export_declaration_number)
 
     # cprint.debug(f"export_declaration_numbers: {export_declaration_numbers}")
     return export_declaration_numbers
@@ -88,12 +88,12 @@ async def get_export_shipment_record(export_declaration_numbers: list[str]):
                 text = await response.text(encoding='utf-8')
 
                 # export_shipment_records.append(xmltodict.parse(text, encoding='utf-8'))
-                response = xmltodict.parse(text, encoding='utf-8')
-                json_dict: dict = json_util.convert_to_json(response)
+                response_json = xmltodict.parse(text, encoding='utf-8')
+                json_dict: dict = json_util.convert_to_json(response_json)
                 pprint(json_dict)
 
-                api_002_response = UnipassApiResponse002(json_dict)
-                cprint.error(f"API002 response record count: {api_002_response.record_count}")
+                api_002_response = UnipassApi002Response(**json_dict)
+                cprint.error(f"API002 response record count: {api_002_response.record.count}")
 
                 export_shipment_records.append(api_002_response)
 
@@ -109,8 +109,9 @@ if __name__ == '__main__':
         cprint.debug(f"API036 response: {number}")
 
     # 수출 이행 내역 조회
-    export_shipment_records = asyncio.run(get_export_shipment_record(export_declaration_numbers))
-    for record in export_shipment_records:
-        cprint.debug(f"API002 response: {record}")
+    export_shipment_responses = asyncio.run(get_export_shipment_record(export_declaration_numbers))
+    for response in export_shipment_responses:
+        cprint.debug(f"API002 result: {response.record.result}")
+        cprint.debug(f"API002 result_detail: {response.record.result_detail}")
 
     cprint.meta("--- %s seconds ---" % (time.time() - start_time))
