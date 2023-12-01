@@ -35,7 +35,7 @@ class ANSIColorEscapeSequence:
 
 def error(message: str):
     print(
-        f"{ANSIColorEscapeSequence.HIGH_INTENSITY_RED}"
+        f"{ANSIColorEscapeSequence.BRIGHT_RED}"
         f"{message}"
         f"{ANSIColorEscapeSequence.BRIGHT_BLACK}"
     )
@@ -47,7 +47,7 @@ def info(message: str):
 
 def debug(message: str):
     print(
-        f"{ANSIColorEscapeSequence.HIGH_INTENSITY_MAGENTA}"
+        f"{ANSIColorEscapeSequence.BRIGHT_MAGENTA}"
         f"{message}"
         f"{ANSIColorEscapeSequence.BRIGHT_BLACK}"
     )
