@@ -105,6 +105,7 @@ if __name__ == '__main__':
 
     # 수출 신고 번호 조회
     export_declaration_numbers = asyncio.run(get_export_declaration_numbers())
+    # export_declaration_numbers = ["1234567890123X"]
     for number in export_declaration_numbers:
         cprint.debug(f"API036 response: {number}")
 
