@@ -7,5 +7,5 @@ pip install -r requirements.txt
 ```
 
 ```sh
-python3 main.py
+python3 simple.py
 ```
