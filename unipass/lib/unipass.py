@@ -66,7 +66,7 @@ class UnipassApi036Response:
             expFfmnBrkdCbnoQryRtnVo: dict,
     ):
         self.record = Api036ExportQueryResponse(**expFfmnBrkdCbnoQryRtnVo)
-        print(self.record.count)
+        print(f"self.record.count {self.record.count}")
 
     def __str__(self):
         return str(self.__dict__)
