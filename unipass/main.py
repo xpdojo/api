@@ -52,6 +52,8 @@ async def get_export_declaration_numbers():
                 response_json = xmltodict.parse(xml_text)
                 json_dict: dict = json_util.convert_to_json(response_json)
                 pprint(json_dict)
+                if json_dict['expFfmnBrkdCbnoQryRtnVo']['tCnt'] == '0':
+                    return []
                 api_036_response: UnipassApi036Response = UnipassApi036Response(**json_dict)
                 cprint.meta(f"progress_status {api_036_response.record.result.progress_status}")
                 _cnt = int(api_036_response.record.count)
