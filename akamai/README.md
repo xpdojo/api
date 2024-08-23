@@ -11,3 +11,7 @@ pip install -r requirements.txt
 ```shell
 python purge-cache.py
 ```
+
+# Reference
+
+- [Akamai API](https://techdocs.akamai.com/home/page/apis)
